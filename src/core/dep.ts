@@ -7,6 +7,8 @@ export interface ReactiveEffectOptions {
   onTrigger?: (event: any) => void
 }
 
+import { debug } from './debug.js'
+
 export interface ReactiveEffectRunner<T = any> {
   (): T
   effect: ReactiveEffect
@@ -59,6 +61,9 @@ export class ReactiveEffect<T = any> {
       shouldTrack = true
 
       cleanupEffect(this)
+      if (debug.enabled) {
+        debug.trackEffectRun()
+      }
       return this.fn()
     } finally {
       activeEffect = this.parent
@@ -139,6 +144,9 @@ export function trackEffects(dep: Dep) {
   if (shouldTrack) {
     dep.add(activeEffect!)
     activeEffect!.deps.push(dep)
+    if (debug.enabled) {
+      debug.trackTrack()
+    }
   }
 }
 
@@ -170,6 +178,16 @@ export function trigger(
       if (Array.isArray(target)) {
         deps.push(depsMap.get('length'))
       }
+      if (target instanceof Map) {
+        deps.push(depsMap.get(MAP_KEY_ITERATE_KEY))
+      }
+    }
+
+    if (type === TriggerOpTypes.CLEAR) {
+      deps.push(depsMap.get(ITERATE_KEY))
+      if (target instanceof Map) {
+        deps.push(depsMap.get(MAP_KEY_ITERATE_KEY))
+      }
     }
   }
 
@@ -181,6 +199,9 @@ export function trigger(
   }
 
   if (effects.length > 0) {
+    if (debug.enabled) {
+      debug.trackTrigger()
+    }
     triggerEffects(createDep(effects))
   }
 }
@@ -217,10 +238,12 @@ export function triggerEffects(dep: Dep) {
 export const enum TriggerOpTypes {
   SET = 'set',
   ADD = 'add',
-  DELETE = 'delete'
+  DELETE = 'delete',
+  CLEAR = 'clear'
 }
 
 export const ITERATE_KEY = Symbol('iterate')
+export const MAP_KEY_ITERATE_KEY = Symbol('Map key iterate')
 
 export const hasOwn = (val: object, key: string | symbol): key is keyof typeof val =>
   Object.prototype.hasOwnProperty.call(val, key)

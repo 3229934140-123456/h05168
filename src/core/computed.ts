@@ -9,6 +9,7 @@ import {
 } from './dep.js'
 import { isObject } from './dep.js'
 import { reactive, ReactiveFlags, WritableComputedRef, ComputedRef } from './reactive.js'
+import { debug } from './debug.js'
 
 export interface ComputedOptions<T> {
   get?: () => T
@@ -62,6 +63,13 @@ export class ComputedRefImpl<T> {
     if (self._dirty || !self._cacheable) {
       self._dirty = false
       self._value = self.effect.run()!
+      if (debug.enabled) {
+        debug.trackComputedRun(false)
+      }
+    } else {
+      if (debug.enabled) {
+        debug.trackComputedRun(true)
+      }
     }
     return self._value
   }

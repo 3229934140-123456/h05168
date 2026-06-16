@@ -75,3 +75,6 @@ export type {
   WatchSource,
   OnCleanup
 } from './core/effect.js'
+
+export { debug } from './core/debug.js'
+export type { DebugStats, DebugEvent } from './core/debug.js'

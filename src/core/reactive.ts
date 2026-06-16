@@ -2,6 +2,7 @@ import {
   track,
   trigger,
   ITERATE_KEY,
+  MAP_KEY_ITERATE_KEY,
   hasOwn,
   isObject,
   isIntegerKey,
@@ -44,10 +45,14 @@ const reactiveMap = new WeakMap<object, any>()
 const readonlyMap = new WeakMap<object, any>()
 const shallowReactiveMap = new WeakMap<object, any>()
 
+function isCollectionType(value: unknown): boolean {
+  return value instanceof Map || value instanceof Set
+}
+
 function createReactiveObject(
   target: Target,
   isReadonly: boolean,
-  handlers: ProxyHandler<any>,
+  isShallow: boolean,
   proxyMap: WeakMap<object, any>
 ) {
   if (!isObject(target)) {
@@ -69,6 +74,17 @@ function createReactiveObject(
   if (target[ReactiveFlags.SKIP] || !Object.isExtensible(target)) {
     return target
   }
+
+  const isCollection = isCollectionType(target)
+  const handlers = isCollection
+    ? isReadonly
+      ? readonlyCollectionHandlers as any
+      : mutableCollectionHandlers as any
+    : isReadonly
+      ? readonlyHandlers
+      : isShallow
+        ? shallowMutableHandlers
+        : mutableHandlers
 
   const proxy = new Proxy(target, handlers)
   proxyMap.set(target, proxy)
@@ -107,15 +123,15 @@ export function reactive<T extends object>(target: T): T {
   if (isReadonly(target)) {
     return target
   }
-  return createReactiveObject(target, false, mutableHandlers, reactiveMap)
+  return createReactiveObject(target, false, false, reactiveMap)
 }
 
 export function shallowReactive<T extends object>(target: T): T {
-  return createReactiveObject(target, false, shallowMutableHandlers, shallowReactiveMap)
+  return createReactiveObject(target, false, true, shallowReactiveMap)
 }
 
 export function readonly<T extends object>(target: T): T {
-  return createReactiveObject(target, true, readonlyHandlers, readonlyMap)
+  return createReactiveObject(target, true, false, readonlyMap)
 }
 
 const arrayInstrumentations: Record<string, Function> = {}
@@ -391,6 +407,135 @@ export function triggerRefValue(ref: any, newVal?: any) {
   if (ref.dep) {
     triggerEffects(ref.dep)
   }
+}
+
+// ==================== 集合类型响应式处理 ====================
+
+const mutableCollectionHandlers: ProxyHandler<Map<any, any> | Set<any>> = {
+  get(target, key, receiver) {
+    target = toRaw(target) as any
+    const isReadonly = false
+    const isShallow = false
+
+    if (key === ReactiveFlags.IS_REACTIVE) return !isReadonly
+    if (key === ReactiveFlags.IS_READONLY) return isReadonly
+    if (key === ReactiveFlags.IS_SHALLOW) return isShallow
+    if (key === ReactiveFlags.RAW) return target
+
+    if (key === 'size') {
+      track(target, ITERATE_KEY)
+      return Reflect.get(target, key, target)
+    }
+
+    const res = Reflect.get(target, key, target)
+
+    if (key === Symbol.iterator || key === 'entries' || key === 'values' || key === 'keys') {
+      return function(this: any) {
+        track(target, key === 'keys' ? MAP_KEY_ITERATE_KEY : ITERATE_KEY)
+        const iterator = (target as any)[key]()
+        const method = key
+        return {
+          next() {
+            const { value, done } = iterator.next()
+            if (!done) {
+              if (method === 'entries' || target instanceof Map) {
+                return { value: [toReactive(value[0]), toReactive(value[1])], done }
+              } else {
+                return { value: toReactive(value), done }
+              }
+            }
+            return { value, done }
+          },
+          [Symbol.iterator]() {
+            return this
+          }
+        }
+      }
+    }
+
+    if (typeof res === 'function') {
+      return function(this: any, ...args: any[]) {
+        const rawTarget = toRaw(this) as Map<any, any> | Set<any>
+        const hadKey = key === 'delete' || key === 'has' || key === 'set' || key === 'add'
+          ? rawTarget.has(args[0])
+          : false
+
+        let oldValue: any
+        if (key === 'set' && hadKey) {
+          oldValue = (rawTarget as Map<any, any>).get(args[0])
+        }
+
+        const result = res.apply(rawTarget, args)
+
+        if (key === 'set' || key === 'add') {
+          if (!hadKey) {
+            trigger(rawTarget, args[0], TriggerOpTypes.ADD, args[1] ?? args[0])
+          } else if (key === 'set') {
+            if (hasChanged(args[1], oldValue)) {
+              trigger(rawTarget, args[0], TriggerOpTypes.SET, args[1])
+            }
+          }
+        } else if (key === 'delete') {
+          if (hadKey) {
+            trigger(rawTarget, args[0], TriggerOpTypes.DELETE)
+          }
+        } else if (key === 'clear') {
+          if ((rawTarget as Map<any, any>).size > 0 || (rawTarget as Set<any>).size > 0) {
+            trigger(rawTarget, undefined, TriggerOpTypes.CLEAR)
+          }
+        } else if (key === 'has') {
+          track(rawTarget, args[0])
+        } else if (key === 'get') {
+          track(rawTarget, args[0])
+          return isShallow ? result : toReactive(result)
+        } else if (key === 'forEach') {
+          track(rawTarget, ITERATE_KEY)
+          const [cb, thisArg] = args
+          return (rawTarget as Map<any, any>).forEach((value: any, key: any) => {
+            cb.call(thisArg, toReactive(value), toReactive(key), receiver)
+          })
+        }
+
+        return result
+      }
+    }
+
+    return res
+  }
+}
+
+const readonlyCollectionHandlers: ProxyHandler<Map<any, any> | Set<any>> = {
+  get(target, key, receiver) {
+    target = toRaw(target) as any
+    const isReadonly = true
+
+    if (key === ReactiveFlags.IS_REACTIVE) return !isReadonly
+    if (key === ReactiveFlags.IS_READONLY) return isReadonly
+    if (key === ReactiveFlags.RAW) return target
+
+    if (key === 'size') {
+      track(target, ITERATE_KEY)
+      return Reflect.get(target, key, target)
+    }
+
+    if (typeof (target as any)[key] === 'function') {
+      if (key === 'set' || key === 'add' || key === 'delete' || key === 'clear') {
+        return function() {
+          if (typeof __DEV__ !== 'undefined' && __DEV__) {
+            console.warn(`collection is readonly`)
+          }
+          return key === 'delete' ? false : undefined
+        }
+      }
+      return mutableCollectionHandlers.get!.apply(null, [target, key, receiver] as any)
+    }
+
+    return Reflect.get(target, key, receiver)
+  }
+}
+
+function toReactive<T>(value: T): T {
+  return isObject(value) ? reactive(value as any) : value
 }
 
 declare const __DEV__: boolean

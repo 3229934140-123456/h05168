@@ -6,6 +6,7 @@ import {
   createDep,
   setGlobalEffectScheduler
 } from './dep.js'
+import { debug } from './debug.js'
 
 let batching = false
 const pendingEffects: Set<ReactiveEffect> = new Set()
@@ -16,10 +17,17 @@ export function batch<T>(fn: () => T): T {
   }
 
   batching = true
+  if (debug.enabled) {
+    debug.trackBatchStart()
+  }
 
   try {
     const result = fn()
     batching = false
+    const merged = pendingEffects.size
+    if (debug.enabled && merged > 0) {
+      debug.trackBatchMerged(merged)
+    }
     flushPendingEffects()
     return result
   } finally {

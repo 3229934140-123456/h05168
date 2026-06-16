@@ -228,9 +228,12 @@ function hasChanged(value: any, oldValue: any): boolean {
   return !Object.is(value, oldValue)
 }
 
-const seenObjects = new WeakSet()
+function traverse(value: unknown): any {
+  const seen = new WeakSet()
+  return _traverse(value, seen)
+}
 
-function traverse(value: unknown, seen: WeakSet<object> = seenObjects): any {
+function _traverse(value: unknown, seen: WeakSet<object>): any {
   if (!isObject(value) || (value as any).__v_skip) {
     return value
   }
@@ -239,21 +242,21 @@ function traverse(value: unknown, seen: WeakSet<object> = seenObjects): any {
   }
   seen.add(value as object)
   if (isRef(value)) {
-    traverse(value.value, seen)
+    _traverse(value.value, seen)
   } else if (isArray(value)) {
     for (let i = 0; i < value.length; i++) {
-      traverse(value[i], seen)
+      _traverse(value[i], seen)
     }
   } else if (value instanceof Map) {
     value.forEach((v, key) => {
-      traverse(key, seen)
-      traverse(v, seen)
+      _traverse(key, seen)
+      _traverse(v, seen)
     })
   } else if (value instanceof Set) {
-    value.forEach(v => traverse(v, seen))
+    value.forEach(v => _traverse(v, seen))
   } else if (isObject(value)) {
     for (const key in value) {
-      traverse((value as Record<string, any>)[key], seen)
+      _traverse((value as Record<string, any>)[key], seen)
     }
   }
   return value
