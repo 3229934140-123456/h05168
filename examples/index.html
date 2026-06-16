@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mini Reactive Framework Demo</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      padding: 32px;
+      max-width: 600px;
+      width: 100%;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 8px;
+      font-size: 24px;
+    }
+    .subtitle {
+      color: #666;
+      margin-bottom: 24px;
+      font-size: 14px;
+    }
+    .demo-section {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .demo-title {
+      color: #667eea;
+      font-weight: 600;
+      margin-bottom: 12px;
+      font-size: 16px;
+    }
+    .counter-display {
+      font-size: 48px;
+      font-weight: bold;
+      text-align: center;
+      color: #333;
+      margin: 16px 0;
+    }
+    .doubled-display {
+      font-size: 24px;
+      text-align: center;
+      color: #667eea;
+      margin-bottom: 16px;
+    }
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    button:hover {
+      background: #5568d3;
+      transform: translateY(-1px);
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    button.secondary {
+      background: #764ba2;
+    }
+    button.secondary:hover {
+      background: #653f8c;
+    }
+    button.danger {
+      background: #e74c3c;
+    }
+    button.danger:hover {
+      background: #c0392b;
+    }
+    .todo-list {
+      list-style: none;
+      margin: 12px 0;
+    }
+    .todo-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      background: white;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .todo-item:hover {
+      background: #f0f0f0;
+    }
+    .todo-item.completed .todo-text {
+      text-decoration: line-through;
+      color: #999;
+    }
+    .todo-text {
+      flex: 1;
+      color: #333;
+    }
+    .todo-stats {
+      display: flex;
+      justify-content: space-between;
+      color: #666;
+      font-size: 14px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #e0e0e0;
+    }
+    .input-group {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 10px 14px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.2s;
+    }
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    .batch-demo {
+      text-align: center;
+    }
+    .batch-result {
+      background: white;
+      padding: 16px;
+      border-radius: 8px;
+      margin: 12px 0;
+    }
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .result-row:last-child {
+      border-bottom: none;
+    }
+    .result-label {
+      color: #666;
+    }
+    .result-value {
+      font-weight: 600;
+      color: #333;
+    }
+    .run-count {
+      color: #e74c3c;
+      font-weight: 600;
+    }
+    .explanation {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 12px;
+      border-radius: 4px;
+      margin-top: 12px;
+      font-size: 13px;
+      color: #856404;
+    }
+    .code-block {
+      background: #2d3748;
+      color: #e2e8f0;
+      padding: 16px;
+      border-radius: 8px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 13px;
+      overflow-x: auto;
+      margin: 12px 0;
+    }
+    .code-keyword { color: #63b3ed; }
+    .code-string { color: #68d391; }
+    .code-function { color: #f6e05e; }
+    .code-comment { color: #718096; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⚡ Mini Reactive Framework</h1>
+    <p class="subtitle">一个轻量级的浏览器端响应式状态管理框架</p>
+
+    <div class="demo-section">
+      <div class="demo-title">📊 基础响应式 + 计算属性</div>
+      <div class="counter-display" id="counterValue">0</div>
+      <div class="doubled-display" id="doubledValue">双倍: 0</div>
+      <div class="btn-group">
+        <button onclick="counter.increment()">+1</button>
+        <button onclick="counter.decrement()">-1</button>
+        <button onclick="counter.reset()" class="danger">重置</button>
+        <button onclick="counter.batchIncrement()" class="secondary">批量 +3</button>
+      </div>
+      <div class="explanation">
+        <strong>计算属性缓存:</strong> <code>doubled</code> 只会在 <code>count</code> 变化时重新计算，多次访问返回缓存结果。
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <div class="demo-title">✅ Todo 列表示例</div>
+      <div class="input-group">
+        <input type="text" id="todoInput" placeholder="添加新任务..." onkeypress="handleTodoKeypress(event)">
+        <button onclick="todoStore.addTodo(document.getElementById('todoInput').value)">添加</button>
+      </div>
+      <ul class="todo-list" id="todoList"></ul>
+      <div class="todo-stats">
+        <span id="todoStats">总计: 0, 已完成: 0</span>
+        <span id="completionRate">完成率: 0%</span>
+      </div>
+      <div class="explanation">
+        <strong>依赖追踪:</strong> 只有真正被读取的数据才会被收集为依赖，<code>completionRate</code> 是派生的计算属性。
+      </div>
+    </div>
+
+    <div class="demo-section batch-demo">
+      <div class="demo-title">🔄 批量更新演示</div>
+      <div class="batch-result">
+        <div class="result-row">
+          <span class="result-label">X:</span>
+          <span class="result-value" id="xValue">1</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Y:</span>
+          <span class="result-value" id="yValue">1</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">X + Y:</span>
+          <span class="result-value" id="sumValue">2</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Effect 运行次数:</span>
+          <span class="result-value run-count" id="effectRunCount">1</span>
+        </div>
+      </div>
+      <div class="btn-group">
+        <button onclick="batchDemo.updateWithoutBatch()">非批量更新</button>
+        <button onclick="batchDemo.updateWithBatch()" class="secondary">批量更新</button>
+        <button onclick="batchDemo.reset()" class="danger">重置</button>
+      </div>
+      <div class="explanation">
+        <strong>批量更新:</strong> 使用 <code>batch()</code> 或 <code>runInAction()</code> 包裹多个同步修改，effect 只会运行一次。
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <div class="demo-title">📚 核心 API 示例</div>
+      <div class="code-block">
+<span class="code-comment">// 1. 可观察对象 (Proxy 代理)</span>
+<span class="code-keyword">const</span> state = <span class="code-function">reactive</span>({ <span class="code-keyword">count:</span> <span class="code-string">0</span> })
+
+<span class="code-comment">// 2. 副作用 (依赖自动收集)</span>
+<span class="code-function">effect</span>(() => {
+  console.<span class="code-function">log</span>(state.count)  <span class="code-comment">// 收集 count 为依赖</span>
+})
+
+<span class="code-comment">// 3. 计算属性 (带缓存)</span>
+<span class="code-keyword">const</span> doubled = <span class="code-function">computed</span>(() => state.count * <span class="code-string">2</span>)
+
+<span class="code-comment">// 4. 批量更新 (避免重复运行)</span>
+<span class="code-function">batch</span>(() => {
+  state.count++
+  state.count++
+})  <span class="code-comment">// effect 只运行一次</span>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import {
+      reactive,
+      ref,
+      computed,
+      effect,
+      batch,
+      runInAction,
+      watch,
+      observable
+    } from './src/index.ts'
+
+    window.__DEV__ = false
+
+    // ========== 计数器示例 ==========
+    const counter = {
+      count: ref(0),
+
+      get doubled() {
+        return computed(() => this.count.value * 2)
+      },
+
+      increment() {
+        this.count.value++
+      },
+
+      decrement() {
+        this.count.value--
+      },
+
+      reset() {
+        this.count.value = 0
+      },
+
+      batchIncrement() {
+        runInAction(() => {
+          this.count.value++
+          this.count.value++
+          this.count.value++
+        })
+      }
+    }
+
+    effect(() => {
+      document.getElementById('counterValue').textContent = counter.count.value
+    })
+
+    effect(() => {
+      document.getElementById('doubledValue').textContent = `双倍: ${counter.doubled.value}`
+    })
+
+    // ========== Todo 列表示例 ==========
+    const todoStore = observable({
+      todos: [],
+      nextId: 1,
+
+      get completedCount() {
+        return this.todos.filter(t => t.completed).length
+      },
+
+      get completionRate() {
+        if (this.todos.length === 0) return 0
+        return Math.round((this.completedCount / this.todos.length) * 100)
+      },
+
+      addTodo(text) {
+        if (!text.trim()) return
+        this.todos.push({
+          id: this.nextId++,
+          text: text.trim(),
+          completed: false
+        })
+      },
+
+      toggleTodo(id) {
+        const todo = this.todos.find(t => t.id === id)
+        if (todo) {
+          todo.completed = !todo.completed
+        }
+      },
+
+      removeTodo(id) {
+        const index = this.todos.findIndex(t => t.id === id)
+        if (index > -1) {
+          this.todos.splice(index, 1)
+        }
+      }
+    })
+
+    function renderTodos() {
+      const list = document.getElementById('todoList')
+      list.innerHTML = todoStore.todos.map(todo => `
+        <li class="todo-item ${todo.completed ? 'completed' : ''}">
+          <input type="checkbox" ${todo.completed ? 'checked' : ''} 
+                 onchange="todoStore.toggleTodo(${todo.id})">
+          <span class="todo-text">${todo.text}</span>
+          <button class="danger" onclick="event.stopPropagation(); todoStore.removeTodo(${todo.id})">删除</button>
+        </li>
+      `).join('')
+
+      document.getElementById('todoStats').textContent = 
+        `总计: ${todoStore.todos.length}, 已完成: ${todoStore.completedCount}`
+      document.getElementById('completionRate').textContent = 
+        `完成率: ${todoStore.completionRate}%`
+    }
+
+    effect(renderTodos)
+
+    window.todoStore = todoStore
+    window.handleTodoKeypress = (e) => {
+      if (e.key === 'Enter') {
+        todoStore.addTodo(e.target.value)
+        e.target.value = ''
+      }
+    }
+
+    // ========== 批量更新演示 ==========
+    const batchDemo = {
+      x: ref(1),
+      y: ref(1),
+      effectRunCount: ref(0),
+
+      get sum() {
+        return computed(() => this.x.value + this.y.value)
+      },
+
+      updateWithoutBatch() {
+        this.x.value++
+        this.y.value++
+        this.x.value++
+      },
+
+      updateWithBatch() {
+        batch(() => {
+          this.x.value++
+          this.y.value++
+          this.x.value++
+        })
+      },
+
+      reset() {
+        this.x.value = 1
+        this.y.value = 1
+        this.effectRunCount.value = 0
+      }
+    }
+
+    effect(() => {
+      batchDemo.effectRunCount.value++
+      document.getElementById('xValue').textContent = batchDemo.x.value
+      document.getElementById('yValue').textContent = batchDemo.y.value
+      document.getElementById('sumValue').textContent = batchDemo.sum.value
+      document.getElementById('effectRunCount').textContent = batchDemo.effectRunCount.value
+    })
+
+    window.counter = counter
+    window.batchDemo = batchDemo
+  </script>
+</body>
+</html>

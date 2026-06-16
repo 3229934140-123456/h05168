@@ -1,0 +1,24 @@
+{
+  "name": "mini-reactive",
+  "version": "1.0.0",
+  "description": "A lightweight reactive state management framework for browser",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "node --experimental-vm-modules tests/basic.test.js"
+  },
+  "keywords": [
+    "reactive",
+    "state-management",
+    "mobx",
+    "vue"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
