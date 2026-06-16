@@ -5,64 +5,64 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mini Reactive Framework Demo</title>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: #f0f2f5;
       min-height: 100vh;
+      padding: 20px;
+    }
+    .page-title {
+      text-align: center;
+      color: #333;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .page-sub {
+      text-align: center;
+      color: #888;
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+    .grid {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      padding: 20px;
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #667eea;
+      margin-bottom: 14px;
       display: flex;
       align-items: center;
-      justify-content: center;
-      padding: 20px;
+      gap: 6px;
     }
-    .container {
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      padding: 32px;
-      max-width: 600px;
-      width: 100%;
-    }
-    h1 {
+    .counter-val {
+      font-size: 56px;
+      font-weight: 800;
+      text-align: center;
       color: #333;
-      margin-bottom: 8px;
-      font-size: 24px;
+      line-height: 1.1;
     }
-    .subtitle {
-      color: #666;
-      margin-bottom: 24px;
-      font-size: 14px;
-    }
-    .demo-section {
-      background: #f8f9fa;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
-    }
-    .demo-title {
+    .counter-sub {
+      text-align: center;
       color: #667eea;
+      font-size: 20px;
       font-weight: 600;
-      margin-bottom: 12px;
-      font-size: 16px;
+      margin: 4px 0 14px;
     }
-    .counter-display {
-      font-size: 48px;
-      font-weight: bold;
-      text-align: center;
-      color: #333;
-      margin: 16px 0;
-    }
-    .doubled-display {
-      font-size: 24px;
-      text-align: center;
-      color: #667eea;
-      margin-bottom: 16px;
-    }
-    .btn-group {
+    .btn-row {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
@@ -70,385 +70,479 @@
     }
     button {
       background: #667eea;
-      color: white;
+      color: #fff;
       border: none;
-      padding: 10px 20px;
+      padding: 8px 16px;
       border-radius: 8px;
       cursor: pointer;
+      font-size: 13px;
+      transition: background 0.15s;
+    }
+    button:hover { background: #5568d3; }
+    button:active { transform: scale(0.97); }
+    button.sec { background: #764ba2; }
+    button.sec:hover { background: #653f8c; }
+    button.danger { background: #e74c3c; }
+    button.danger:hover { background: #c0392b; }
+    button.warn { background: #f39c12; color: #333; }
+    button.warn:hover { background: #d68910; }
+    button.sm { padding: 4px 10px; font-size: 12px; }
+    .input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 8px 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
       font-size: 14px;
-      transition: all 0.2s;
     }
-    button:hover {
-      background: #5568d3;
-      transform: translateY(-1px);
-    }
-    button:active {
-      transform: translateY(0);
-    }
-    button.secondary {
-      background: #764ba2;
-    }
-    button.secondary:hover {
-      background: #653f8c;
-    }
-    button.danger {
-      background: #e74c3c;
-    }
-    button.danger:hover {
-      background: #c0392b;
-    }
-    .todo-list {
-      list-style: none;
-      margin: 12px 0;
-    }
+    input[type="text"]:focus { outline: none; border-color: #667eea; }
     .todo-item {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 10px;
-      background: white;
+      gap: 8px;
+      padding: 8px 10px;
+      background: #f8f9fa;
       border-radius: 8px;
-      margin-bottom: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
+      margin-bottom: 6px;
     }
-    .todo-item:hover {
-      background: #f0f0f0;
-    }
-    .todo-item.completed .todo-text {
-      text-decoration: line-through;
-      color: #999;
-    }
-    .todo-text {
-      flex: 1;
-      color: #333;
-    }
+    .todo-item.done span { text-decoration: line-through; color: #aaa; }
+    .todo-item span { flex: 1; font-size: 14px; }
     .todo-stats {
       display: flex;
       justify-content: space-between;
       color: #666;
-      font-size: 14px;
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid #e0e0e0;
+      font-size: 13px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #eee;
     }
-    .input-group {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-    input[type="text"] {
-      flex: 1;
-      padding: 10px 14px;
-      border: 2px solid #e0e0e0;
-      border-radius: 8px;
-      font-size: 14px;
-      transition: border-color 0.2s;
-    }
-    input[type="text"]:focus {
-      outline: none;
-      border-color: #667eea;
-    }
-    .batch-demo {
-      text-align: center;
-    }
-    .batch-result {
-      background: white;
-      padding: 16px;
-      border-radius: 8px;
-      margin: 12px 0;
-    }
-    .result-row {
+    .stat-row {
       display: flex;
       justify-content: space-between;
-      padding: 8px 0;
-      border-bottom: 1px solid #f0f0f0;
+      padding: 6px 0;
+      border-bottom: 1px solid #f5f5f5;
+      font-size: 14px;
     }
-    .result-row:last-child {
-      border-bottom: none;
-    }
-    .result-label {
-      color: #666;
-    }
-    .result-value {
-      font-weight: 600;
-      color: #333;
-    }
-    .run-count {
-      color: #e74c3c;
-      font-weight: 600;
-    }
-    .explanation {
-      background: #fff3cd;
-      border-left: 4px solid #ffc107;
-      padding: 12px;
+    .stat-row:last-child { border-bottom: none; }
+    .stat-label { color: #888; }
+    .stat-val { font-weight: 600; color: #333; }
+    .stat-val.red { color: #e74c3c; }
+    .stat-val.green { color: #27ae60; }
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
       border-radius: 4px;
-      margin-top: 12px;
-      font-size: 13px;
-      color: #856404;
+      font-size: 12px;
+      margin: 2px;
     }
-    .code-block {
-      background: #2d3748;
-      color: #e2e8f0;
-      padding: 16px;
+    .tag.map { background: #e8f5e9; color: #2e7d32; }
+    .tag.set { background: #e3f2fd; color: #1565c0; }
+    .debug-panel {
+      grid-column: 1 / -1;
+    }
+    .debug-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+    }
+    .debug-item {
+      background: #f8f9fa;
       border-radius: 8px;
-      font-family: 'Consolas', 'Monaco', monospace;
-      font-size: 13px;
-      overflow-x: auto;
-      margin: 12px 0;
+      padding: 12px;
+      text-align: center;
     }
-    .code-keyword { color: #63b3ed; }
-    .code-string { color: #68d391; }
-    .code-function { color: #f6e05e; }
-    .code-comment { color: #718096; }
+    .debug-item .num {
+      font-size: 28px;
+      font-weight: 800;
+      color: #667eea;
+    }
+    .debug-item .label {
+      font-size: 12px;
+      color: #888;
+      margin-top: 4px;
+    }
+    .deep-node {
+      padding: 6px 10px;
+      background: #f8f9fa;
+      border-radius: 6px;
+      margin-bottom: 4px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .deep-node input {
+      width: 60px;
+      padding: 4px 6px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    .hint {
+      background: #fff8e1;
+      border-left: 3px solid #ffc107;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #7c6600;
+      margin-top: 10px;
+    }
+    .full-span { grid-column: 1 / -1; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>⚡ Mini Reactive Framework</h1>
-    <p class="subtitle">一个轻量级的浏览器端响应式状态管理框架</p>
+  <div class="page-title">Mini Reactive Framework</div>
+  <p class="page-sub">浏览器端响应式状态管理框架 — 打开即用，点击即响应</p>
 
-    <div class="demo-section">
-      <div class="demo-title">📊 基础响应式 + 计算属性</div>
-      <div class="counter-display" id="counterValue">0</div>
-      <div class="doubled-display" id="doubledValue">双倍: 0</div>
-      <div class="btn-group">
-        <button onclick="counter.increment()">+1</button>
-        <button onclick="counter.decrement()">-1</button>
-        <button onclick="counter.reset()" class="danger">重置</button>
-        <button onclick="counter.batchIncrement()" class="secondary">批量 +3</button>
+  <div class="grid">
+    <div class="card">
+      <div class="card-title">📊 计数器 + 计算属性</div>
+      <div class="counter-val" id="cntVal">0</div>
+      <div class="counter-sub" id="cntDoubled">双倍: 0</div>
+      <div class="btn-row">
+        <button onclick="app.inc()">+1</button>
+        <button onclick="app.dec()">-1</button>
+        <button onclick="app.reset()" class="danger">重置</button>
+        <button onclick="app.batchInc()" class="sec">批量+3</button>
       </div>
-      <div class="explanation">
-        <strong>计算属性缓存:</strong> <code>doubled</code> 只会在 <code>count</code> 变化时重新计算，多次访问返回缓存结果。
-      </div>
+      <div class="hint"><b>计算属性缓存:</b> <code>doubled</code> 仅在 <code>count</code> 变化时重算，多次访问返回缓存。</div>
     </div>
 
-    <div class="demo-section">
-      <div class="demo-title">✅ Todo 列表示例</div>
-      <div class="input-group">
-        <input type="text" id="todoInput" placeholder="添加新任务..." onkeypress="handleTodoKeypress(event)">
-        <button onclick="todoStore.addTodo(document.getElementById('todoInput').value)">添加</button>
+    <div class="card">
+      <div class="card-title">🔄 批量更新</div>
+      <div class="stat-row"><span class="stat-label">X</span><span class="stat-val" id="bx">1</span></div>
+      <div class="stat-row"><span class="stat-label">Y</span><span class="stat-val" id="by">1</span></div>
+      <div class="stat-row"><span class="stat-label">X + Y</span><span class="stat-val green" id="bsum">2</span></div>
+      <div class="stat-row"><span class="stat-label">Effect 次数</span><span class="stat-val red" id="brun">1</span></div>
+      <div class="btn-row" style="margin-top:12px">
+        <button onclick="app.batchNo()">非批量更新</button>
+        <button onclick="app.batchYes()" class="sec">批量更新</button>
+        <button onclick="app.batchReset()" class="danger">重置</button>
       </div>
-      <ul class="todo-list" id="todoList"></ul>
+      <div class="hint"><b>批量更新:</b> <code>batch()</code> 内多次修改只触发一次 effect。</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">✅ Todo 列表</div>
+      <div class="input-row">
+        <input type="text" id="todoIn" placeholder="添加新任务...">
+        <button onclick="app.addTodo()">添加</button>
+      </div>
+      <div id="todoList"></div>
       <div class="todo-stats">
-        <span id="todoStats">总计: 0, 已完成: 0</span>
-        <span id="completionRate">完成率: 0%</span>
-      </div>
-      <div class="explanation">
-        <strong>依赖追踪:</strong> 只有真正被读取的数据才会被收集为依赖，<code>completionRate</code> 是派生的计算属性。
+        <span id="todoStat">总计: 0, 已完成: 0</span>
+        <span id="todoRate">完成率: 0%</span>
       </div>
     </div>
 
-    <div class="demo-section batch-demo">
-      <div class="demo-title">🔄 批量更新演示</div>
-      <div class="batch-result">
-        <div class="result-row">
-          <span class="result-label">X:</span>
-          <span class="result-value" id="xValue">1</span>
-        </div>
-        <div class="result-row">
-          <span class="result-label">Y:</span>
-          <span class="result-value" id="yValue">1</span>
-        </div>
-        <div class="result-row">
-          <span class="result-label">X + Y:</span>
-          <span class="result-value" id="sumValue">2</span>
-        </div>
-        <div class="result-row">
-          <span class="result-label">Effect 运行次数:</span>
-          <span class="result-value run-count" id="effectRunCount">1</span>
-        </div>
+    <div class="card">
+      <div class="card-title">🌳 深度监听</div>
+      <div id="deepNodes"></div>
+      <div class="stat-row" style="margin-top:10px"><span class="stat-label">深层修改次数</span><span class="stat-val red" id="deepCnt">0</span></div>
+      <div class="btn-row" style="margin-top:8px">
+        <button onclick="app.deepModify()" class="sm">修改子项值</button>
+        <button onclick="app.deepAdd()" class="sm sec">添加子项</button>
+        <button onclick="app.deepReset()" class="sm danger">重置</button>
       </div>
-      <div class="btn-group">
-        <button onclick="batchDemo.updateWithoutBatch()">非批量更新</button>
-        <button onclick="batchDemo.updateWithBatch()" class="secondary">批量更新</button>
-        <button onclick="batchDemo.reset()" class="danger">重置</button>
+      <div class="hint"><b>深度监听:</b> 嵌套属性修改也能触发回调，适合表单、树形数据。</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🗺️ Map 响应式</div>
+      <div class="input-row">
+        <input type="text" id="mapKeyIn" placeholder="Key">
+        <input type="text" id="mapValIn" placeholder="Value">
+        <button onclick="app.mapSet()">Set</button>
       </div>
-      <div class="explanation">
-        <strong>批量更新:</strong> 使用 <code>batch()</code> 或 <code>runInAction()</code> 包裹多个同步修改，effect 只会运行一次。
+      <div class="stat-row"><span class="stat-label">Map.size</span><span class="stat-val" id="mapSize">0</span></div>
+      <div class="stat-row"><span class="stat-label">Keys</span><span class="stat-val" id="mapKeys">—</span></div>
+      <div class="stat-row"><span class="stat-label">Values</span><span class="stat-val" id="mapVals">—</span></div>
+      <div class="stat-row"><span class="stat-label">派生: 值总和</span><span class="stat-val green" id="mapSum">0</span></div>
+      <div id="mapEntries" style="margin-top:8px"></div>
+      <div class="btn-row" style="margin-top:8px">
+        <button onclick="app.mapDelete()" class="sm danger">删除选中</button>
+        <button onclick="app.mapClear()" class="sm warn">Clear</button>
       </div>
     </div>
 
-    <div class="demo-section">
-      <div class="demo-title">📚 核心 API 示例</div>
-      <div class="code-block">
-<span class="code-comment">// 1. 可观察对象 (Proxy 代理)</span>
-<span class="code-keyword">const</span> state = <span class="code-function">reactive</span>({ <span class="code-keyword">count:</span> <span class="code-string">0</span> })
+    <div class="card">
+      <div class="card-title">📦 Set 响应式</div>
+      <div class="input-row">
+        <input type="text" id="setValIn" placeholder="Value">
+        <button onclick="app.setAdd()">Add</button>
+      </div>
+      <div class="stat-row"><span class="stat-label">Set.size</span><span class="stat-val" id="setSize">0</span></div>
+      <div class="stat-row"><span class="stat-label">Values</span><span class="stat-val" id="setVals">—</span></div>
+      <div class="stat-row"><span class="stat-label">派生: 偶数个数</span><span class="stat-val green" id="setEven">0</span></div>
+      <div id="setEntries" style="margin-top:8px"></div>
+      <div class="btn-row" style="margin-top:8px">
+        <button onclick="app.setDelete()" class="sm danger">删除选中</button>
+        <button onclick="app.setClear()" class="sm warn">Clear</button>
+      </div>
+    </div>
 
-<span class="code-comment">// 2. 副作用 (依赖自动收集)</span>
-<span class="code-function">effect</span>(() => {
-  console.<span class="code-function">log</span>(state.count)  <span class="code-comment">// 收集 count 为依赖</span>
-})
-
-<span class="code-comment">// 3. 计算属性 (带缓存)</span>
-<span class="code-keyword">const</span> doubled = <span class="code-function">computed</span>(() => state.count * <span class="code-string">2</span>)
-
-<span class="code-comment">// 4. 批量更新 (避免重复运行)</span>
-<span class="code-function">batch</span>(() => {
-  state.count++
-  state.count++
-})  <span class="code-comment">// effect 只运行一次</span>
+    <div class="card debug-panel">
+      <div class="card-title">🔧 调试面板</div>
+      <div class="debug-grid">
+        <div class="debug-item"><div class="num" id="dbgEffect">0</div><div class="label">Effect 运行次数</div></div>
+        <div class="debug-item"><div class="num" id="dbgTrigger">0</div><div class="label">Trigger 次数</div></div>
+        <div class="debug-item"><div class="num" id="dbgTrack">0</div><div class="label">Track 次数</div></div>
+        <div class="debug-item"><div class="num" id="dbgCompRun">0</div><div class="label">Computed 重算</div></div>
+        <div class="debug-item"><div class="num" id="dbgCompHit">0</div><div class="label">Computed 缓存命中</div></div>
+        <div class="debug-item"><div class="num" id="dbgBatch">0</div><div class="label">Batch 调用</div></div>
+        <div class="debug-item"><div class="num" id="dbgMerged">0</div><div class="label">Batch 合并更新</div></div>
+      </div>
+      <div class="btn-row" style="margin-top:12px">
+        <button onclick="app.resetDebug()">重置统计</button>
       </div>
     </div>
   </div>
 
-  <script type="module">
-    import {
-      reactive,
-      ref,
-      computed,
-      effect,
-      batch,
-      runInAction,
-      watch,
-      observable
-    } from './src/index.ts'
+  <script src="../dist/mini-reactive.iife.js"></script>
+  <script>
+  (function() {
+    var M = MiniReactive;
+    var reactive = M.reactive;
+    var ref = M.ref;
+    var computed = M.computed;
+    var effect = M.effect;
+    var batch = M.batch;
+    var runInAction = M.runInAction;
+    var watch = M.watch;
+    var observable = M.observable;
+    var debug = M.debug;
 
-    window.__DEV__ = false
+    debug.enable();
 
-    // ========== 计数器示例 ==========
-    const counter = {
-      count: ref(0),
+    // ===== 计数器 =====
+    var count = ref(0);
+    var doubled = computed(function() { return count.value * 2; });
 
-      get doubled() {
-        return computed(() => this.count.value * 2)
-      },
+    effect(function() {
+      document.getElementById('cntVal').textContent = count.value;
+    });
+    effect(function() {
+      document.getElementById('cntDoubled').textContent = '双倍: ' + doubled.value;
+    });
 
-      increment() {
-        this.count.value++
-      },
+    // ===== 批量更新 =====
+    var bx = ref(1), by = ref(1), bRuns = ref(0);
+    var bsum = computed(function() { return bx.value + by.value; });
 
-      decrement() {
-        this.count.value--
-      },
+    effect(function() {
+      bRuns.value++;
+      document.getElementById('bx').textContent = bx.value;
+      document.getElementById('by').textContent = by.value;
+      document.getElementById('bsum').textContent = bsum.value;
+      document.getElementById('brun').textContent = bRuns.value;
+    });
 
-      reset() {
-        this.count.value = 0
-      },
+    // ===== Todo =====
+    var todos = reactive({ list: [], nextId: 1 });
+    var todoCompleted = computed(function() {
+      return todos.list.filter(function(t) { return t.done; }).length;
+    });
+    var todoRate = computed(function() {
+      return todos.list.length === 0 ? 0 : Math.round(todoCompleted.value / todos.list.length * 100);
+    });
 
-      batchIncrement() {
-        runInAction(() => {
-          this.count.value++
-          this.count.value++
-          this.count.value++
-        })
+    effect(function() {
+      var html = '';
+      for (var i = 0; i < todos.list.length; i++) {
+        var t = todos.list[i];
+        html += '<div class="todo-item' + (t.done ? ' done' : '') + '">'
+          + '<input type="checkbox" ' + (t.done ? 'checked' : '') + ' onchange="app.toggleTodo(' + t.id + ')">'
+          + '<span>' + escHtml(t.text) + '</span>'
+          + '<button class="sm danger" onclick="app.removeTodo(' + t.id + ')">删除</button>'
+          + '</div>';
       }
+      document.getElementById('todoList').innerHTML = html;
+      document.getElementById('todoStat').textContent = '总计: ' + todos.list.length + ', 已完成: ' + todoCompleted.value;
+      document.getElementById('todoRate').textContent = '完成率: ' + todoRate.value + '%';
+    });
+
+    // ===== 深度监听 =====
+    var deepState = reactive({
+      nodes: [
+        { id: 1, label: '节点A', value: 10 },
+        { id: 2, label: '节点B', value: 20 }
+      ]
+    });
+    var deepModCount = ref(0);
+
+    watch(function() { return JSON.stringify(deepState.nodes); }, function(nv, ov) {
+      deepModCount.value++;
+    }, { deep: true });
+
+    effect(function() {
+      var html = '';
+      for (var i = 0; i < deepState.nodes.length; i++) {
+        var n = deepState.nodes[i];
+        html += '<div class="deep-node">'
+          + '<b>' + escHtml(n.label) + '</b>'
+          + ' <input type="text" value="' + n.value + '" onchange="app.deepVal(' + i + ', this.value)">'
+          + '</div>';
+      }
+      document.getElementById('deepNodes').innerHTML = html;
+      document.getElementById('deepCnt').textContent = deepModCount.value;
+    });
+
+    // ===== Map =====
+    var rmap = reactive(new Map([['x', 1], ['y', 2]]));
+    var mapSum = computed(function() {
+      var s = 0;
+      rmap.forEach(function(v) { s += v; });
+      return s;
+    });
+
+    effect(function() {
+      document.getElementById('mapSize').textContent = rmap.size;
+      var keys = [];
+      var iter = rmap.keys();
+      var r = iter.next();
+      while (!r.done) { keys.push(r.value); r = iter.next(); }
+      document.getElementById('mapKeys').textContent = keys.join(', ') || '—';
+      var vals = [];
+      rmap.forEach(function(v) { vals.push(v); });
+      document.getElementById('mapVals').textContent = vals.join(', ') || '—';
+      document.getElementById('mapSum').textContent = mapSum.value;
+      var ehtml = '';
+      rmap.forEach(function(v, k) {
+        ehtml += '<div class="deep-node"><span class="tag map">' + escHtml(String(k)) + '</span> → ' + v
+          + ' <button class="sm danger" onclick="app.mapDelKey(\'' + escAttr(String(k)) + '\')">删除</button></div>';
+      });
+      document.getElementById('mapEntries').innerHTML = ehtml;
+    });
+
+    // ===== Set =====
+    var rset = reactive(new Set([1, 2, 3]));
+    var setEven = computed(function() {
+      var c = 0;
+      rset.forEach(function(v) { if (v % 2 === 0) c++; });
+      return c;
+    });
+
+    effect(function() {
+      document.getElementById('setSize').textContent = rset.size;
+      var vals = [];
+      rset.forEach(function(v) { vals.push(v); });
+      document.getElementById('setVals').textContent = vals.join(', ') || '—';
+      document.getElementById('setEven').textContent = setEven.value;
+      var ehtml = '';
+      rset.forEach(function(v) {
+        ehtml += '<div class="deep-node"><span class="tag set">' + v + '</span>'
+          + ' <button class="sm danger" onclick="app.setDelVal(\'' + v + '\')">删除</button></div>';
+      });
+      document.getElementById('setEntries').innerHTML = ehtml;
+    });
+
+    // ===== 调试面板 =====
+    effect(function() {
+      var s = debug.stats;
+      document.getElementById('dbgEffect').textContent = s.effectRuns;
+      document.getElementById('dbgTrigger').textContent = s.triggerCount;
+      document.getElementById('dbgTrack').textContent = s.trackCount;
+      document.getElementById('dbgCompRun').textContent = s.computedRuns;
+      document.getElementById('dbgCompHit').textContent = s.computedCacheHits;
+      document.getElementById('dbgBatch').textContent = s.batchUpdates;
+      document.getElementById('dbgMerged').textContent = s.batchMerged;
+    });
+
+    // ===== helpers =====
+    function escHtml(s) {
+      var d = document.createElement('div');
+      d.appendChild(document.createTextNode(s));
+      return d.innerHTML;
+    }
+    function escAttr(s) {
+      return s.replace(/'/g, "\\'").replace(/"/g, '&quot;');
     }
 
-    effect(() => {
-      document.getElementById('counterValue').textContent = counter.count.value
-    })
-
-    effect(() => {
-      document.getElementById('doubledValue').textContent = `双倍: ${counter.doubled.value}`
-    })
-
-    // ========== Todo 列表示例 ==========
-    const todoStore = observable({
-      todos: [],
-      nextId: 1,
-
-      get completedCount() {
-        return this.todos.filter(t => t.completed).length
+    // ===== app actions =====
+    window.app = {
+      inc: function() { count.value++; },
+      dec: function() { count.value--; },
+      reset: function() { count.value = 0; },
+      batchInc: function() {
+        runInAction(function() {
+          count.value++; count.value++; count.value++;
+        });
       },
-
-      get completionRate() {
-        if (this.todos.length === 0) return 0
-        return Math.round((this.completedCount / this.todos.length) * 100)
+      batchNo: function() { bx.value++; by.value++; bx.value++; },
+      batchYes: function() {
+        batch(function() { bx.value++; by.value++; bx.value++; });
       },
-
-      addTodo(text) {
-        if (!text.trim()) return
-        this.todos.push({
-          id: this.nextId++,
-          text: text.trim(),
-          completed: false
-        })
+      batchReset: function() { bx.value = 1; by.value = 1; bRuns.value = 0; },
+      addTodo: function() {
+        var inp = document.getElementById('todoIn');
+        var txt = inp.value.trim();
+        if (!txt) return;
+        todos.list.push({ id: todos.nextId++, text: txt, done: false });
+        inp.value = '';
       },
-
-      toggleTodo(id) {
-        const todo = this.todos.find(t => t.id === id)
-        if (todo) {
-          todo.completed = !todo.completed
+      toggleTodo: function(id) {
+        for (var i = 0; i < todos.list.length; i++) {
+          if (todos.list[i].id === id) { todos.list[i].done = !todos.list[i].done; break; }
         }
       },
-
-      removeTodo(id) {
-        const index = this.todos.findIndex(t => t.id === id)
-        if (index > -1) {
-          this.todos.splice(index, 1)
+      removeTodo: function(id) {
+        for (var i = 0; i < todos.list.length; i++) {
+          if (todos.list[i].id === id) { todos.list.splice(i, 1); break; }
         }
-      }
-    })
-
-    function renderTodos() {
-      const list = document.getElementById('todoList')
-      list.innerHTML = todoStore.todos.map(todo => `
-        <li class="todo-item ${todo.completed ? 'completed' : ''}">
-          <input type="checkbox" ${todo.completed ? 'checked' : ''} 
-                 onchange="todoStore.toggleTodo(${todo.id})">
-          <span class="todo-text">${todo.text}</span>
-          <button class="danger" onclick="event.stopPropagation(); todoStore.removeTodo(${todo.id})">删除</button>
-        </li>
-      `).join('')
-
-      document.getElementById('todoStats').textContent = 
-        `总计: ${todoStore.todos.length}, 已完成: ${todoStore.completedCount}`
-      document.getElementById('completionRate').textContent = 
-        `完成率: ${todoStore.completionRate}%`
-    }
-
-    effect(renderTodos)
-
-    window.todoStore = todoStore
-    window.handleTodoKeypress = (e) => {
-      if (e.key === 'Enter') {
-        todoStore.addTodo(e.target.value)
-        e.target.value = ''
-      }
-    }
-
-    // ========== 批量更新演示 ==========
-    const batchDemo = {
-      x: ref(1),
-      y: ref(1),
-      effectRunCount: ref(0),
-
-      get sum() {
-        return computed(() => this.x.value + this.y.value)
       },
-
-      updateWithoutBatch() {
-        this.x.value++
-        this.y.value++
-        this.x.value++
+      deepModify: function() {
+        if (deepState.nodes.length > 0) deepState.nodes[0].value += 5;
       },
-
-      updateWithBatch() {
-        batch(() => {
-          this.x.value++
-          this.y.value++
-          this.x.value++
-        })
+      deepAdd: function() {
+        deepState.nodes.push({ id: deepState.nodes.length + 1, label: '节点' + String.fromCharCode(65 + deepState.nodes.length), value: Math.floor(Math.random() * 100) });
       },
+      deepVal: function(idx, val) {
+        var n = parseInt(val, 10);
+        if (!isNaN(n)) deepState.nodes[idx].value = n;
+      },
+      deepReset: function() {
+        deepState.nodes.length = 0;
+        deepState.nodes.push({ id: 1, label: '节点A', value: 10 }, { id: 2, label: '节点B', value: 20 });
+        deepModCount.value = 0;
+      },
+      mapSet: function() {
+        var k = document.getElementById('mapKeyIn').value.trim();
+        var v = parseInt(document.getElementById('mapValIn').value, 10);
+        if (!k) return;
+        if (isNaN(v)) v = 0;
+        rmap.set(k, v);
+        document.getElementById('mapKeyIn').value = '';
+        document.getElementById('mapValIn').value = '';
+      },
+      mapDelete: function() {
+        var k = document.getElementById('mapKeyIn').value.trim();
+        if (k) rmap.delete(k);
+      },
+      mapDelKey: function(k) { rmap.delete(k); },
+      mapClear: function() { rmap.clear(); },
+      setAdd: function() {
+        var v = parseInt(document.getElementById('setValIn').value, 10);
+        if (isNaN(v)) return;
+        rset.add(v);
+        document.getElementById('setValIn').value = '';
+      },
+      setDelete: function() {
+        var v = parseInt(document.getElementById('setValIn').value, 10);
+        if (!isNaN(v)) rset.delete(v);
+      },
+      setDelVal: function(v) { rset.delete(parseInt(v, 10)); },
+      setClear: function() { rset.clear(); },
+      resetDebug: function() { debug.reset(); }
+    };
 
-      reset() {
-        this.x.value = 1
-        this.y.value = 1
-        this.effectRunCount.value = 0
-      }
-    }
-
-    effect(() => {
-      batchDemo.effectRunCount.value++
-      document.getElementById('xValue').textContent = batchDemo.x.value
-      document.getElementById('yValue').textContent = batchDemo.y.value
-      document.getElementById('sumValue').textContent = batchDemo.sum.value
-      document.getElementById('effectRunCount').textContent = batchDemo.effectRunCount.value
-    })
-
-    window.counter = counter
-    window.batchDemo = batchDemo
+    document.getElementById('todoIn').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') app.addTodo();
+    });
+  })();
   </script>
 </body>
 </html>

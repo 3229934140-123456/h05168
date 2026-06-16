@@ -434,11 +434,12 @@ const mutableCollectionHandlers: ProxyHandler<Map<any, any> | Set<any>> = {
         track(target, key === 'keys' ? MAP_KEY_ITERATE_KEY : ITERATE_KEY)
         const iterator = (target as any)[key]()
         const method = key
+        const isPairResult = method === 'entries' || (target instanceof Map && method === Symbol.iterator)
         return {
           next() {
             const { value, done } = iterator.next()
             if (!done) {
-              if (method === 'entries' || target instanceof Map) {
+              if (isPairResult) {
                 return { value: [toReactive(value[0]), toReactive(value[1])], done }
               } else {
                 return { value: toReactive(value), done }
@@ -456,6 +457,15 @@ const mutableCollectionHandlers: ProxyHandler<Map<any, any> | Set<any>> = {
     if (typeof res === 'function') {
       return function(this: any, ...args: any[]) {
         const rawTarget = toRaw(this) as Map<any, any> | Set<any>
+
+        if (key === 'forEach') {
+          track(rawTarget, ITERATE_KEY)
+          const [cb, thisArg] = args
+          return (rawTarget as Map<any, any>).forEach((value: any, key: any) => {
+            cb.call(thisArg, toReactive(value), toReactive(key), receiver)
+          })
+        }
+
         const hadKey = key === 'delete' || key === 'has' || key === 'set' || key === 'add'
           ? rawTarget.has(args[0])
           : false
@@ -464,6 +474,10 @@ const mutableCollectionHandlers: ProxyHandler<Map<any, any> | Set<any>> = {
         if (key === 'set' && hadKey) {
           oldValue = (rawTarget as Map<any, any>).get(args[0])
         }
+
+        const hadItems = key === 'clear'
+          ? rawTarget.size > 0
+          : false
 
         const result = res.apply(rawTarget, args)
 
@@ -480,7 +494,7 @@ const mutableCollectionHandlers: ProxyHandler<Map<any, any> | Set<any>> = {
             trigger(rawTarget, args[0], TriggerOpTypes.DELETE)
           }
         } else if (key === 'clear') {
-          if ((rawTarget as Map<any, any>).size > 0 || (rawTarget as Set<any>).size > 0) {
+          if (hadItems) {
             trigger(rawTarget, undefined, TriggerOpTypes.CLEAR)
           }
         } else if (key === 'has') {
@@ -488,12 +502,6 @@ const mutableCollectionHandlers: ProxyHandler<Map<any, any> | Set<any>> = {
         } else if (key === 'get') {
           track(rawTarget, args[0])
           return isShallow ? result : toReactive(result)
-        } else if (key === 'forEach') {
-          track(rawTarget, ITERATE_KEY)
-          const [cb, thisArg] = args
-          return (rawTarget as Map<any, any>).forEach((value: any, key: any) => {
-            cb.call(thisArg, toReactive(value), toReactive(key), receiver)
-          })
         }
 
         return result

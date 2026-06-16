@@ -7,6 +7,8 @@
   "module": "src/index.ts",
   "scripts": {
     "build": "tsc",
+    "bundle": "node scripts/bundle.js",
+    "dist": "tsc && node scripts/bundle.js",
     "dev": "node scripts/dev-server.js",
     "test": "node --experimental-vm-modules tests/basic.test.js",
     "test:collection": "node --experimental-vm-modules tests/collection.test.js",
@@ -21,6 +23,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "esbuild": "^0.28.1",
     "typescript": "^5.0.0"
   }
 }

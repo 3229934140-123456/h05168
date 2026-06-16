@@ -183,6 +183,10 @@ export function trigger(
       }
     }
 
+    if (type === TriggerOpTypes.SET && target instanceof Map) {
+      deps.push(depsMap.get(ITERATE_KEY))
+    }
+
     if (type === TriggerOpTypes.CLEAR) {
       deps.push(depsMap.get(ITERATE_KEY))
       if (target instanceof Map) {
